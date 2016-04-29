@@ -1,0 +1,7 @@
+#############################################################################
+# Changes for current version of the CE
+# See version.txt for the version number.
+# Each change should be on a single line, any length
+#############################################################################
+Made it possible to view some integers in hex format.
+Used SO_REUSEADDR in devTcp4Server.

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Channel Emulator Control Panel</title>
+<script type="text/javascript" src="CollapsibleLists.js"></script>
+<script type="text/javascript" src="xmlrpc_lib.js"></script>
+<script type="text/javascript" src="Messenger.js"></script>
+<script type="text/javascript" src="Preferences.js"></script>
+<script type="text/javascript" src="DLL.js"></script>
+<script type="text/javascript" src="DLLManager.js"></script>
+<script type="text/javascript" src="Device.js"></script>
+<script type="text/javascript" src="Segment.js"></script>
+<script type="text/javascript" src="Channel.js"></script>
+<script type="text/javascript" src="ChannelManager.js"></script>
+<script type="text/javascript">
+
+var client, msg, prefs, dllMgr, channelMgr;
+var xmlParser = new DOMParser();
+
+function loadFileToString(filename) {
+	var fileRequest = new XMLHttpRequest();
+	var url = top.location.protocol + "//" + top.location.hostname + ":" + top.location.port + "/" + filename;
+
+	fileRequest.open("GET", url, false);
+	fileRequest.setRequestHeader("User-Agent", navigator.userAgent);
+	fileRequest.send(null);
+
+	if (fileRequest.status != 200) {
+		msg.error("Unable to read server file " + filename);
+		return null;
+	}
+
+	return fileRequest.responseText;
+}
+
+function initialize() {
+	client = new xmlrpc_client('/RPC2', top.location.hostname, top.location.port);
+	msg = new Messenger(DLVL_MUTE);
+	dllMgr = new DLLManager();
+	channelMgr = new ChannelManager();
+	CollapsibleLists.apply();
+	window.document.getElementById("navList").style.visibility = "visible";
+}
+
+function guidGenerator() {
+    var S4 = function() {
+       return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+    };
+    // return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+
+    return ("chan_" + S4() + S4());
+}
+
+// Changes XML to JSON
+// Found at http://davidwalsh.name/convert-xml-json
+function xmlToJson(xml) {
+
+	// Create the return object
+	var obj = {};
+
+	if (xml.nodeType == 1) { // element
+		// do attributes
+		if (xml.attributes.length > 0) {
+		obj["@attributes"] = {};
+			for (var j = 0; j < xml.attributes.length; j++) {
+				var attribute = xml.attributes.item(j);
+				obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
+			}
+		}
+	}
+	else if (xml.nodeType == 3) { // text
+		obj = xml.nodeValue;
+	}
+
+	// do children
+	if (xml.hasChildNodes()) {
+		for(var i = 0; i < xml.childNodes.length; i++) {
+			var item = xml.childNodes.item(i);
+			var nodeName = item.nodeName;
+			if (typeof(obj[nodeName]) == "undefined") {
+				obj[nodeName] = xmlToJson(item);
+			}
+			else {
+				if (typeof(obj[nodeName].push) == "undefined") {
+					var old = obj[nodeName];
+					obj[nodeName] = [];
+					obj[nodeName].push(old);
+				}
+				obj[nodeName].push(xmlToJson(item));
+			}
+		}
+	}
+	obj.toString = function() { return this["#text"]; }
+	return obj;
+};
+
+
+</script>
+<link rel="stylesheet" type="text/css" href="main.css"/>
+</head>
+
+<body onload="initialize()">
+
+<div id='mainNavOuter'>
+<div id='mainNavInner'>
+<ul id="navList" class="treeView" style="padding: 0px; margin: 0px 0px 0px 2px; visibility: hidden;">
+<li>Channel Emulator Functions
+	<ul class="collapsibleList">
+	<li>About</li>
+	<li onclick="if (className.match(/(^| )collapsibleListClosed( |$)/)) { channelMgr.display(); }">Channels
+		<ul id="channelList">
+		<li class="lastChild" id='addChannel'><a class='jlink' noref onclick="channelMgr.addChannel(prompt('New channel name', guidGenerator()))"><i>Add New Channel</i></a></li>
+		</ul>
+	</li>
+	<li>Devices
+		<ul id="deviceList">
+		<li class="lastChild" id='addDevice'><a class='jlink' noref onclick=""><i>Add New Device</i></a></li>
+		</ul>
+	</li>
+	<li class="lastChild">Available Modules
+		<ul>
+		<li>Devices
+			<ul class='collapsibleList' id='deviceModuleList'>
+			<li class='lastChild' id='refreshDevices'>
+			<i>Refresh List</i>
+			</li>
+			</ul>
+		</li>
+		<li class="lastChild">Segments
+			<ul class='collapsibleList' id='segmentModuleList'>
+			<li class='lastChild' id='refreshSegments'><i>Refresh List</i>
+			</li>
+			</ul>
+		</li>
+		</ul>
+	</li>
+	</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id='workArea'></div>
+
+<div id='toolbar'>
+<form name='Preferences'>
+<table id='toolbarTable'>
+<tr>
+<td>Log Level</td>
+<td>
+<select id="debugLevel" name="debugLevel" onchange="prefs.setDebugLevel(this.selectedIndex)">
+<option value="0">Mute</option>
+<option value="1">Errors</option>
+<option value="2">Warnings</option>
+<option value="3">Notices</option>
+<option value="4">Info</option>
+<option value="5">Debug</option>
+</select>
+</td>
+<td style='padding-left: 15px'><a class='jlink' noref onclick="msgArea.innerHTML=''">Clear Console</a></td>
+</tr>
+</table>
+</form>
+</div>
+
+<div id='msgArea'>
+Welcome to the Channel Emulator Control Panel<br/>
+</div>
+
+</body>
+
+</html>

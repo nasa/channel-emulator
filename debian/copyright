@@ -1,0 +1,19 @@
+This package was debianized by Tad Kollar
+
+Upstream Author(s):
+
+    Thaddeus J. Kollar  
+
+Copyright:
+
+    Copyright (C) 2016 NASA Glenn Research Center
+
+License:
+
+    GNU General Public License, version 2
+
+The Debian packaging is (C) 2016, Tad Kollar   and
+is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
+
+# Please also look if there are files or directories which have a
+# different copyright/license attached and list them here.

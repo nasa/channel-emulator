@@ -1,0 +1,292 @@
+ctsce (1.8.6.5) precise; urgency=low
+
+  * Made it possible to view some integers in hex format.
+  * Used SO_REUSEADDR in devTcp4Server.
+
+ -- Tad Kollar < >  Thu, 20 Feb 2014 13:31:27 -0500
+
+ctsce (1.8.6.4) precise; urgency=low
+
+  * Created the FdInputHandler base class for modUdp4Receiver, modTcp4Receiver, and modEthReceiver.
+
+ -- Tad Kollar < >  Fri, 14 Feb 2014 15:25:45 -0500
+
+ctsce (1.8.6.3) precise; urgency=low
+
+  * Added more counters and minor opts to modASM_Remove.
+
+ -- Tad Kollar < >  Thu, 13 Feb 2014 10:24:48 -0500
+
+ctsce (1.8.6.2) precise; urgency=low
+
+  * Backported NetworkData memory management fixes/opts from 1.9.x.
+
+ -- Tad Kollar < >  Wed, 12 Feb 2014 09:22:05 -0500
+
+ctsce (1.8.6.1) precise; urgency=low
+
+  * Fixed AOS and TM get_idle_pattern so it wouldn't crash the CE.
+
+ -- Tad Kollar < >  Tue, 17 Dec 2013 12:18:08 -0500
+
+ctsce (1.8.6.0) precise; urgency=low
+
+  * New 1.8.6.* branch to retain old Channel GUI while applying fixes.
+  * Fixes for valid TM/AOS Frame counting.
+  * Fixes for TM/AOS garbage collection when dealing with dropBadFrames.
+  * Fix for modEthFrame_Add that caused a seg fault when loaded.
+
+ -- Tad Kollar < >  Fri, 13 Dec 2013 10:25:43 -0500
+
+ctsce (1.8.5.1) precise; urgency=low
+
+  * Fixed connectOutput/connectPrimaryOutput for modTM_VC_Rcv_Packet.
+
+ -- Tad Kollar < >  Fri, 27 Sep 2013 14:11:19 -0400
+
+ctsce (1.8.5) precise; urgency=low
+
+  * Fixed ability to change a device when one is already in use by the calling segment, or the device is already in use by a different segment.
+  * Fixed ability to add outputs to the Demux modules after they've been initialized.
+  * Began implementing BitPattern classes that will generate standard bit patterns, usable by modules like devSource (not yet implemented).
+
+ -- Tad Kollar < >  Wed, 25 Sep 2013 14:45:06 -0400
+
+ctsce (1.8.4) precise; urgency=low
+
+  * modTM_Macros.newForwardChannel now inserts modTM_MC_Gen.
+  * modTM_Macros.newReturnChannel now inserts modTM_MC_Rcv.
+  * All of the AOS and TM macros accept a new "minimize" parameter, which will prevent the insertion of mux/demux modules if not required
+  * All of the AOS and TM macros accept a new "usePseudoRandomize" parameter, which will insert modPseudoRandomize at the appropriate place.
+  * All AOS and TM modules have a new "dropBadFrames" setting that defaults to true, with getDropBadFrames and setDropBadFrames methods available. It will cause malformed frames (or in the case of All Frames Reception, frames that fail ECC) to be discarded. A malformed frame is one with the wrong length or a wrong identifier (TVFN, SCID, VCID, etc., depending on the module). This setting is local to each channel segment. It replaces "performErrorControlHere" in the TM modules, which is basically what that setting used to do. There wasn't an equivalent in AOS.
+  * The default initial queue size for each segment is now 4MB instead of 16MB.
+  * Improved the garbage collection and locking for the data "wrapper" base class, NetworkData. It now only creates a lock object when a shallow copy is created, instead of for every object. It turns out these lock objects were not always being deleted, which had been causing a bit of a memory leak. Also, there is new a template function that performs some checks and invokes a reference-counting release() method, which is safer for shallow copies and multi-part data blocks than a simple delete.
+  * The manual and properties files were updated with the new settings.
+
+ -- Tad Kollar < >  Thu, 05 Sep 2013 13:27:24 -0400
+
+ctsce (1.8.3) precise; urgency=low
+
+  * Added modPseudoRandomize.
+
+ -- Tad Kollar <tkollar@localhost>  Thu, 01 Aug 2013 10:01:03 -0400
+
+ctsce (1.8.2) precise; urgency=low
+
+  * Config/data file selection, uploads, and downloads; XML schema.
+
+ -- Tad Kollar < >  Mon, 01 Jul 2013 12:55:23 -0400
+
+ctsce (1.8.1) precise; urgency=low
+
+  * Several bugfixes to GUI and TM modules.
+
+ -- tkollar <tkollar@localhost>  Fri, 31 May 2013 10:59:18 -0400
+
+ctsce (1.8.0) precise; urgency=low
+
+  * New GUI is complete
+  * All module properties files are complete
+  * New settings XML-RPC calls
+  * Many updated XML-RPC calls and bugfixes as a result of testing.
+
+ -- Tad Kollar <tkollar@localhost>  Tue, 28 May 2013 10:15:07 -0400
+
+ctsce (1.7.1) precise; urgency=low
+
+  * New GUI under development.
+  * New XML-RPC calls for module DLL management.
+  * Support for module property files.
+
+ -- tkollar <tkollar@localhost>  Fri, 14 Sep 2012 12:50:45 -0400
+
+ctsce (1.7.0) quantal; urgency=low
+
+  * Added support for CCSDS TM protocol.
+
+ -- tkollar <tkollar@localhost>  Fri, 01 Jun 2012 17:18:31 -0400
+
+ctsce (1.6.1-1) precise; urgency=low
+
+  * Converted from automake to cmake.
+  * Began using ACE 6.0.x.
+  * Began using libnl3.
+  * Allowed for modules to be named libmod*.so and libdev*.so.
+
+ -- Tad Kollar <tkollar@localhost>  Thu, 03 May 2012 13:08:49 -0400
+
+ctsce (1.6.0-1) unstable; urgency=low
+
+  * Wrote a new general-purpose Reed-Solomon library that services both the
+    CCSDS RS(255,223)/RS(255,239) codes and the AOS header RS(10,6) code.
+
+ -- Tad Kollar    Tue, 03 Apr 2012 12:21:18 -0400
+
+ctsce (1.5.2-1) unstable; urgency=low
+
+  * Added several options and a bad Encap counter to modAOS_M_PDU_Remove.
+
+ -- Tad Kollar <tkollar@localhost>  Fri, 13 Jan 2012 13:36:07 -0500
+
+ctsce (1.5.1-1) unstable; urgency=low
+
+  * Added user-configurable fill pattern to modAOS_M_PDU_Add.
+
+ -- Tad Kollar    Tue, 10 Jan 2012 14:24:56 -0500
+
+ctsce (1.5.0-1) unstable; urgency=low
+
+  * Added timeline capability to emulation modules.
+
+ -- Tad Kollar    Tue, 03 Jan 2012 12:46:44 -0500
+
+ctsce (1.4.8-1) unstable; urgency=low
+
+  * Improved individual module startup/pause reliablity.
+  * Added per-module log output settings for debug builds.
+
+ -- Tad Kollar    Tue, 13 Dec 2011 15:40:21 -0500
+
+ctsce (1.4.7-1) unstable; urgency=low
+
+  * Enhanced configurability of modules supporting Encapsulation Packets
+    directly (modEncapPkt_Add, modEncapPkt_Remove, and modAOS_M_PDU_Remove).
+    Support for IPE can be enabled or disabled, and every parameter in the
+    header can be specified.
+
+ -- Tad Kollar    Thu, 08 Dec 2011 12:57:21 -0500
+
+ctsce (1.4.6-1) unstable; urgency=low
+
+  * Rewrote Reed-Solomon modules again to put LGPL functions into
+    their own library, libccsds_rs.
+  * Added 4 types of counters to modASM_Remove.
+  * Added a corrected error counter to modRSDecode.
+
+ -- Tad Kollar    Fri, 18 Nov 2011 14:04:13 -0500
+
+ctsce (1.4.5-1) unstable; urgency=low
+
+  * Fixed modRSEncode and modRSDecode so they are truly CCSDS-compliant.
+
+ -- Tad Kollar    Wed, 16 Nov 2011 15:05:47 -0500
+
+ctsce (1.4.4-1) unstable; urgency=low
+
+  * Fixed problem with non-setting highWaterMark/lowWaterMark.
+  * Set a default MRU of 4096 on modFdReceiver.
+
+ -- Tad Kollar    Fri, 30 Sep 2011 15:29:11 -0400
+
+ctsce (1.4.3-1) unstable; urgency=low
+
+  * Fixed module.pause() for modEthReceiver, modTcp4Receiver, and
+    modUdp4Receiver.
+
+ -- Tad Kollar    Thu, 22 Sep 2011 10:19:02 -0400
+
+ctsce (1.4.2-1) unstable; urgency=low
+
+  * Fixed the behavior of the module.pause() XML-RPC method so that it
+    doesn't also shut down the segment.
+
+ -- Tad Kollar    Wed, 07 Sep 2011 11:17:39 -0400
+
+ctsce (1.4.1-1) unstable; urgency=low
+
+  * Added the protectedHeaderBits and protectedTrailerBits settings to
+    modEmulateBitErrors so that errors would not affect headers/trailers
+    if desired.
+  * Added the ifaceName setting to devEthernet so that the device could
+    be named differently than the interface as known to the OS.
+
+ -- Tad Kollar    Thu, 11 Aug 2011 10:06:21 -0400
+
+ctsce (1.4-1) unstable; urgency=low
+
+  * Changed the way devices, channels, and segments are "autoloaded." Now,
+    any group in the Devices section with a "devType" setting is loaded as
+    a Device unless autoLoad = false; any group in the Channels section
+    is loaded as a channel unless autoLoad = false; any group within
+    a channel where "dllName" is set is loaded as a segment unless autoLoad
+    = false. Segment dependencies are resolved automatically so they
+    can be listed in the config file in any order. The array settings that
+    used to specify the items to load are now ignored.
+
+ -- Tad Kollar    Thu, 26 May 2011 13:37:32 -0400
+
+ctsce (1.3-1) unstable; urgency=low
+
+  * Added the modRSEncode, modRSDecode, modEmulatePhaseAmbiguity, and
+    modResolvePhaseAmbiguity modules.
+
+ -- Tad Kollar    Wed, 18 May 2011 15:29:14 -0400
+
+ctsce (1.2-1) unstable; urgency=low
+
+  * Added devUdp, modUdp4Receiver, and modUdp4Transmitter modules.
+
+ -- Tad Kollar    Fri, 08 Apr 2011 11:41:12 -0400
+
+ctsce (1.1-4) unstable; urgency=low
+
+  * Added the devSource and devSink devices to allow for traffic generation
+    and discarding.
+
+ -- Tad Kollar    Mon, 07 Mar 2011 15:16:53 -0500
+
+ctsce (1.1-3) unstable; urgency=low
+
+  * Added segment-specific counters and settings for each module to
+    XML-RPC getInfo call.
+  * Created separate metric and settings tabs on the GUI info window,
+    plus added a close button and title bar for dragging.
+
+ -- Tad Kollar    Thu, 23 Sep 2010 12:46:10 -0400
+
+ctsce (1.1-2) unstable; urgency=low
+
+  * Fixed a drawing error when channels were different lengths.
+  * In modEmulateRate, only computed wait time if rateLimit is non-zero.
+
+ -- Tad Kollar    Mon, 13 Sep 2010 14:46:48 -0400
+
+ctsce (1.1-1) unstable; urgency=low
+
+  * Converted Devices to modules.
+  * Cleaned up/optimized devEthernet.
+
+ -- Tad Kollar <tkollar@localhost>  Tue, 10 Aug 2010 14:11:06 -0400
+
+ctsce (1.0-4) unstable; urgency=low
+
+  * Made configuration file setting type errors more verbose.
+  * Allowed info windows to close on clicking (again).
+
+ -- Tad Kollar    Wed, 04 Aug 2010 09:30:58 -0400
+
+ctsce (1.0-3) unstable; urgency=low
+
+  * Use XML-RPC i8 type instead of int for counters to prevent overflow.
+  * Enabled XML-RPC asynchronous calling for getInfo updates.
+  * Made info windows draggable.
+  * Gave channel name labels a background so they're readable.
+
+ -- Tad Kollar    Mon, 26 Jul 2010 14:49:44 -0400
+
+ctsce (1.0-2) unstable; urgency=low
+
+  * SVG interface shows the complete layout, with rate and message queue
+    size information for each segment.
+  * The ASM Remove module has had a complete rewrite of its main function to
+    improve performance.
+  * A few new config file options (e.g. "leftSide" for devices).
+  * A few new XML-RPC methods.
+
+ -- Tad Kollar    Mon, 26 Jul 2010 14:46:38 -0400
+
+ctsce (1.0-1) unstable; urgency=low
+
+  * Initial release.
+
+ -- Tad Kollar    Mon, 26 Apr 2010 10:01:27 -0400

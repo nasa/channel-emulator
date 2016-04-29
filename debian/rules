@@ -1,0 +1,95 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+DESTDIR=debian/tmp
+CE_VAR_DIR=/var/lib/ctsce
+CE_WWW_DIR=$(CE_VAR_DIR)/www
+CE_IO_DIR=$(CE_VAR_DIR)/fileIO
+CE_ETC_DIR=/etc/ctsce
+CE_CFG_FILE=ctsced.cfg
+CE_CH_CFG_FILE=devices-channels.cfg
+CE_MOD_DIR=/usr/lib/ctsce-modules
+
+configure: configure-stamp
+configure-stamp:
+	cmake -DCMAKE_INSTALL_PREFIX=/usr
+	touch configure-stamp
+
+build: build-stamp
+
+build-stamp: configure-stamp
+	dh_testdir
+
+	# Add here commands to compile the package.
+	$(MAKE)
+	#docbook-to-man debian/ctsce.sgml > ctsce.1
+
+	touch $@
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp configure-stamp
+
+	# Add here commands to clean up after the build process.
+	# $(MAKE) clean
+
+	dh_clean
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+
+	$(MAKE) DESTDIR=$(DESTDIR) install
+
+# Build architecture-independent files here.
+binary-indep: build install
+# We have nothing to do by default.
+
+# Build architecture-dependent files here.
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs ChangeLog
+	dh_installdocs
+	dh_installexamples test/config/*cfg
+	mkdir -p $(DESTDIR)/etc
+	cp -p $(CE_CFG_FILE) $(DESTDIR)/etc/
+	mkdir -p $(DESTDIR)$(CE_ETC_DIR)
+	cp -p $(CE_CH_CFG_FILE) $(DESTDIR)$(CE_ETC_DIR)
+	mkdir -p $(DESTDIR)/etc/default
+	echo "DAEMON_OPTS='-s /etc/$(CE_CFG_FILE)'" > $(DESTDIR)/etc/default/ctsce
+	mkdir -m 0770 -p $(DESTDIR)$(CE_IO_DIR)
+	mkdir -m 0755 -p $(DESTDIR)$(CE_WWW_DIR)
+	cp -pr www/* $(DESTDIR)$(CE_WWW_DIR)
+	cp -pr modules/descs/*dsc $(DESTDIR)$(CE_MOD_DIR)/
+	dh_install
+#	dh_installmenu
+#	dh_installdebconf
+#	dh_installlogrotate
+#	dh_installemacsen
+#	dh_installpam
+#	dh_installmime
+#	dh_python
+	dh_installinit
+#	dh_installcron
+#	dh_installinfo
+#	dh_installman
+	dh_link
+	dh_strip
+	dh_compress
+	dh_fixperms
+#	dh_perl
+	dh_makeshlibs
+	dh_installdeb
+	dh_shlibdeps -- --warnings=2
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install configure

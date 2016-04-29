@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+targetNamespace="http://channel-emulator.grc.nasa.gov/module-properties"
+xmlns="http://channel-emulator.grc.nasa.gov/module-properties"
+elementFormDefault="qualified">
+
+<xs:annotation>
+	<xs:documentation>
+		$Id: module-properties.xsd 2534 2014-02-20 15:36:09Z tkollar $
+		Author: Tad Kollar (< >)
+		Copyright (c) 2013.
+		NASA Glenn Research Center.  All rights reserved.
+		See COPYING file that comes with this distribution.
+	</xs:documentation>
+</xs:annotation>
+
+<xs:simpleType name="modNameType">
+	<xs:annotation>
+		<xs:documentation>
+			This name relates directly to the filename of the shared
+			library. If this value is modAbc_123, the library will have
+			an expected name of libmodAbc_123.so.x.y.z (where x.y.z is
+			the version of the CE).
+		</xs:documentation>
+	</xs:annotation>
+	<xs:restriction base="xs:string">
+		<xs:pattern value="(mod|dev)[A-Za-z0-9_]+"/>
+	</xs:restriction>
+</xs:simpleType>
+
+<xs:complexType name="settingType">
+	<xs:annotation>
+		<xs:documentation>
+			Most modules have multiple settings, some of which can be
+			rather complex.
+		</xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="prompt" type="xs:string"/>
+			<xs:element name="type">
+				<xs:simpleType>
+					<xs:annotation>
+						<xs:documentation>
+							Each of these types is handled differently in the GUI,
+							with different layouts, validators, and input masks.
+						</xs:documentation>
+					</xs:annotation>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="boolean"/>
+						<xs:enumeration value="device"/>
+						<xs:enumeration value="double"/>
+						<xs:enumeration value="id"/>
+						<xs:element name="int"/>
+							<xs:complexType>
+								<xs:simpleContent>
+									<xs:extension base="xs:string">
+										<xs:attribute name="format" type="xs:string"/>
+									</xs:extension>
+								</xs:simpleContent>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="int64"/>
+							<xs:complexType>
+								<xs:simpleContent>
+									<xs:extension base="xs:string">
+										<xs:attribute name="format" type="xs:string"/>
+									</xs:extension>
+								</xs:simpleContent>
+							</xs:complexType>
+						</xs:element>
+						<xs:enumeration value="ipv4"/>
+						<xs:enumeration value="mac"/>
+						<xs:enumeration value="output"/>
+						<xs:enumeration value="string"/>
+						<xs:enumeration value="structList"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="desc">
+				<xs:complexType>
+					<xs:simpleContent>
+						<xs:extension base="xs:string">
+							<xs:attribute name="dup" type="xs:boolean"/>
+						</xs:extension>
+					</xs:simpleContent>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="required">
+				<xs:complexType>
+					<xs:complexContent>
+						<xs:restriction base="xs:anyType"/>
+					</xs:complexContent>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="ethernetInterfaces">
+				<xs:annotation>
+					<xs:documentation>
+						An Boolean-type setting that tells the client to provide a list of
+						available Ethernet interfaces.
+					</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:complexContent>
+						<xs:restriction base="xs:anyType"/>
+					</xs:complexContent>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="array">
+				<xs:annotation>
+					<xs:documentation>
+						An array-type setting allows multiple values of the same type
+						separated by commas.
+					</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:complexContent>
+						<xs:restriction base="xs:anyType"/>
+					</xs:complexContent>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="default" type="xs:string"/>
+			<xs:element name="min" type="xs:decimal"/>
+			<xs:element name="max" type="xs:decimal"/>
+			<xs:element name="acceptedValues">
+				<xs:annotation>
+					<xs:documentation>
+						A setting with acceptedValues can be representing as a
+						drop-down/select list control in the GUI.
+					</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:choice minOccurs="0" maxOccurs="unbounded">
+							<xs:element name="item">
+								<xs:complexType mixed="true">
+									<xs:attribute name="value" type="xs:string"/>
+								</xs:complexType>
+							</xs:element>
+						</xs:choice>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="setMethod" type="xs:string"/>
+			<xs:element name="unsetMethod" type="xs:string"/>
+			<xs:element name="getMethod" type="xs:string"/>
+		</xs:choice>
+	</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="structListSettingType">
+	<xs:annotation>
+		<xs:documentation>
+			To the base setting type, this adds the "order" and "key"
+			elements, which aid in display formatting and sorting,
+			respectively.
+		</xs:documentation>
+	</xs:annotation>
+	<xs:complexContent>
+		<xs:extension base="settingType">
+			<xs:sequence>
+				<xs:choice minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="order" type="xs:integer"/>
+					<xs:element name="key" type="xs:boolean"/>
+				</xs:choice>
+			</xs:sequence>
+		</xs:extension>
+	</xs:complexContent>
+</xs:complexType>
+
+<xs:complexType name="structListType">
+	<xs:annotation>
+		<xs:documentation>
+			A structList is mostly just a sublist of settings. In the
+			GUI, these are generally represented as columns in a small
+			table, with each column a different setting type; each row
+			is a complete group of settings found in that structList.
+			It can optionally be sorted, restricted to one dimension,
+			or prevented from growing larger than the initial setup.
+		</xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="setting" type="structListSettingType"/>
+		</xs:choice>
+	</xs:sequence>
+	<xs:attribute name="dimensions" type="xs:integer"/>
+	<xs:attribute name="grow" type="xs:boolean"/>
+	<xs:attribute name="sort">
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:enumeration value="ascending"/>
+				<xs:enumeration value="descending"/>
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:attribute>
+</xs:complexType>
+
+<xs:complexType name="primarySettingType">
+	<xs:annotation>
+		<xs:documentation>
+			To the base setting type, this adds the "path" and "structList"
+			setting types. The path represents a template to the setting's
+			location in the config file. A structList is a sub-group of settings
+			(see structListType documentation).
+		</xs:documentation>
+	</xs:annotation>
+	<xs:complexContent>
+		<xs:extension base="settingType">
+			<xs:sequence>
+				<xs:choice minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="path" type="xs:string"/>
+					<xs:element name="structList" type="structListType"/>
+				</xs:choice>
+			</xs:sequence>
+		</xs:extension>
+	</xs:complexContent>
+</xs:complexType>
+
+<xs:complexType name="macroSettingType">
+	<xs:annotation>
+		<xs:documentation>
+			To the base setting type, this adds the "path" and "partOfSettingsStruct"
+			setting types. The path represents the identifier of the setting
+			in the structure of settings that's sent to the CE as the macro's
+			parameters. The "partOfSettingsStruct" indicator shows that a setting
+			is to be part of that structure rather than it's own parameter.
+		</xs:documentation>
+	</xs:annotation>
+	<xs:complexContent>
+		<xs:extension base="settingType">
+			<xs:sequence>
+				<xs:choice minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="path" type="xs:string"/>
+					<xs:element name="partOfSettingsStruct">
+						<xs:complexType>
+							<xs:complexContent>
+								<xs:restriction base="xs:anyType"/>
+							</xs:complexContent>
+						</xs:complexType>
+					</xs:element>
+				</xs:choice>
+			</xs:sequence>
+		</xs:extension>
+	</xs:complexContent>
+</xs:complexType>
+
+<xs:element name="modinfo">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element name="name" type="modNameType"/>
+				<xs:element name="title" type="xs:string"/>
+				<xs:element name="desc" type="xs:string"/>
+				<xs:element name="cat" minOccurs="0">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="AOS"/>
+							<xs:enumeration value="CCSDS"/>
+							<xs:enumeration value="device"/>
+							<xs:enumeration value="Emulation"/>
+							<xs:enumeration value="Ethernet"/>
+							<xs:enumeration value="File"/>
+							<xs:enumeration value="IPv4"/>
+							<xs:enumeration value="macro"/>
+							<xs:enumeration value="TM"/>
+							<xs:enumeration value="Utility"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="depends">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:choice minOccurs="0" maxOccurs="unbounded">
+								<xs:element name="modName" type="modNameType"/>
+							</xs:choice>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="config">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:choice minOccurs="0" maxOccurs="unbounded">
+								<xs:element name="ref">
+									<xs:complexType>
+										<xs:sequence>
+											<xs:choice minOccurs="0" maxOccurs="unbounded">
+												<xs:element name="id" type="xs:string"/>
+												<xs:element name="ignore" type="xs:string"/>
+											</xs:choice>
+										</xs:sequence>
+									</xs:complexType>
+								</xs:element>
+								<xs:element name="setting" type="primarySettingType"/>
+							</xs:choice>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="macro">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:choice minOccurs="0" maxOccurs="unbounded">
+								<xs:element name="title" type="xs:string"/>
+								<xs:element name="desc" type="xs:string"/>
+								<xs:element name="method" type="xs:string"/>
+								<xs:element name="setting" type="macroSettingType"/>
+							</xs:choice>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:choice>
+		</xs:sequence>
+	</xs:complexType>
+</xs:element>
+
+</xs:schema>

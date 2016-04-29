@@ -1,0 +1,65 @@
+$Id: README 947 2010-01-20 16:43:15Z tkollar $
+**********************************************************************
+Channel Emulator build prerequisites
+**********************************************************************
+ACE-6.0.1
+libnl-2.0
+xmlrpc-c
+libconfig
+boost-regex
+libmagic
+
+**********************************************************************
+ ACE 6.0.1
+**********************************************************************
+- Obtain from http://www.cs.wustl.edu/~schmidt/ACE.html or
+  use OS packages.
+- Build/use shared lib version.
+- Must have TIMED_MESSAGE_BLOCKS enabled
+
+**********************************************************************
+ libnl 2.0
+**********************************************************************
+- Obtain from http://people.suug.ch/~tgr/libnl/
+- for i in libnl-genl libnl-nf libnl-route libnl; do
+	sudo ln -s $prefix/lib/$i.so.2.0 $prefix/lib/$i.so; done
+- sudo cp netlink-generic.h netlink-local.h \
+	netlink-tc.h netlink-types.h \
+	$prefix/include
+
+**********************************************************************
+ xmlrpc-c
+**********************************************************************
+- Obtain from http://xmlrpc-c.sourceforge.net/
+- Pre-requisites:
+  - libcurl (http://curl.haxx.se/libcurl/) 
+  - libwww (http://www.w3.org/Library/)
+- Compile and install with default values.
+
+**********************************************************************
+libconfig
+**********************************************************************
+- Obtain from http://www.hyperrealm.com/libconfig/
+- Compile and install with default values.
+
+**********************************************************************
+ boost-regex
+**********************************************************************
+- Obtain from http://www.boost.org/ or distribution package.
+- Install with shared libraries.
+
+**********************************************************************
+ libmagic
+**********************************************************************
+- Obtain from http://www.darwinsys.com/file/ or distribution package.
+- Install with shared libraries.
+
+
+**********************************************************************
+BUILDING
+**********************************************************************
+
+cmake .
+make
+
+

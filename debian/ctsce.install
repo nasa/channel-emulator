@@ -1,0 +1,9 @@
+usr/lib/libNetworkData*.so*
+usr/lib/libCE_Module*.so*
+usr/lib/libCE_Device*.so*
+usr/sbin/ctsced
+etc/ctsced.cfg
+etc/ctsce/devices-channels.cfg
+etc/default/ctsce
+var/lib/ctsce/www/*
+var/lib/ctsce/fileIO

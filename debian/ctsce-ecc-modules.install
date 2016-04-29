@@ -1,0 +1,4 @@
+usr/lib/ctsce-modules/libmodRS*so*
+usr/lib/ctsce-modules/modRS*.dsc
+usr/lib/ctsce-modules/libmodResolvePhaseAmbiguity*so*
+usr/lib/ctsce-modules/modResolvePhaseAmbiguity*.dsc

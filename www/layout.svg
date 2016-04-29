@@ -1,0 +1,244 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg id="mainCanvas" onload="layout.acquireCeInfo(evt);" width="100%" height="100%" version="1.1"
+	 xmlns="http://www.w3.org/2000/svg"
+	 xmlns:xlink="http://www.w3.org/1999/xlink"
+	 viewport="0 0 1920 1280">
+
+<style type="text/css">
+
+.standardNode {
+	fill: url(#grayLinearGrad);
+	stroke: black;
+	stroke-width: 1;
+	fill-opacity: 1.0;
+	stroke-opacity: 1.0;
+}
+
+.deviceNode {
+	fill: url(#goldLinearGrad);
+	stroke: black;
+	stroke-width: 1;
+	fill-opacity: 1.0;
+	stroke-opacity: 1.0;
+}
+
+text {
+	text-rendering: geometricPrecision;
+	stroke-width: 0.5;
+}
+
+.label {
+	font: normal normal 12pt Arial, Helvetica;
+	text-anchor: middle;
+	fill-opacity: 1.0;
+	stroke-opacity: 1.0;
+	stroke: black;
+	fill: black;
+}
+
+.rate_caption {
+	font: normal normal 9pt Arial, Helvetica;
+	text-anchor: middle;
+	fill-opacity: 1.0;
+	stroke-opacity: 1.0;
+	stroke: green;
+	fill: green;
+}
+
+text.infoWinTitle {
+	fill: yellow;
+	fill-opacity: 0.8;
+	stroke: yellow;
+	stroke-opacity: 0.8;	
+	font: bold italic 10pt Arial, Helvetica;
+	text-anchor: middle;	
+}
+
+text.infoWinText {
+	fill: yellow;
+	fill-opacity: 0.8;
+	stroke: yellow;
+	stroke-opacity: 0.8;	
+	font: normal normal 10pt Arial, Helvetica;
+	text-anchor: start;	
+}
+
+svg {
+	overflow: visible;
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+path.info, rect.info {
+	fill: rgb(40,40,40);
+	fill-opacity: 0.75;
+}
+
+path.info_title, rect.info_title {
+	fill: rgb(80,80,80);
+	fill-opacity: 0.9;
+}
+
+rect.channel {
+	stroke-width: 0.0;
+	fill: url(#cloud);
+}
+
+path.line_leftToRight {
+	stroke: rgb(255,0,0);
+	stroke-width: 2;
+	stroke-opacity: 0.75;
+	fill: none;
+}
+
+path.line_rightToLeft {
+	stroke: rgb(0,0,255);
+	stroke-width: 2;
+	stroke-opacity: 0.75;
+	fill: none;
+}
+
+path.pointer_leftToRight {
+	stroke: rgb(255,0,0);
+	stroke-width: 1;
+	stroke-opacity: 0.75;
+	fill: rgb(255,0,0);
+}
+
+path.pointer_rightToLeft {
+	stroke: rgb(0,0,255);
+	stroke-width: 1;
+	stroke-opacity: 0.75;
+	fill: rgb(0,0,255);
+}
+
+text#mainTitle {
+	fill: white;
+	fill-opacity: 0.9;
+	stroke: black;
+	stroke-width: 0.7;
+	stroke-opacity: 1;	
+	font: bold normal 18pt Arial, Helvetica;
+	text-anchor: middle;		
+}
+
+rect.danger_bar {
+	fill: url(#redYellowGreen);
+	fill-opacity: 1.0;
+	stroke: black;
+	stroke-width: 0.5;
+}
+
+rect.danger_bar_cover {
+	fill: white;
+	fill-opacity: 1.0;
+	stroke-width: 0;
+}
+
+rect.quick_info {
+	fill: white;
+	stroke: black;
+	stroke-width: 0.75;
+	stroke-opacity: 1;
+}
+
+rect.channel_label_bg {
+	fill: rgb(128,128,128);
+	fill-opacity: 0.5;
+	stroke: none;
+}
+
+circle.lit_close_button {
+	fill: rgb(255,0,0);
+	fill-opacity: 0.7;
+}
+
+circle.dark_close_button {
+	fill: rgb(100,0,0);
+	fill-opacity: 0.5;
+}
+
+</style>
+
+<script type="text/ecmascript" xlink:href="xmlrpc_lib.js"/>
+<script type="text/ecmascript" xlink:href="collisions.js"/>
+<script type="text/ecmascript" xlink:href="ce_interface.js"/>
+<image x="0" y="-200" width="2000" height="1500" xlink:href="earth.jpg"/>
+
+<defs>
+	<linearGradient id="cloudLinearGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+		<stop offset="0%" style="stop-color:rgb(200,200,255); stop-opacity:0"/>
+		<stop offset="25%" style="stop-color: pink; stop-opacity:0.38"/>
+		<stop offset="50%" style="stop-color: white; stop-opacity:0.75"/>
+		<stop offset="75%" style="stop-color: pink; stop-opacity:0.38"/>
+		<stop offset="100%" style="stop-color:rgb(200,200,255); stop-opacity:0"/>
+	</linearGradient>
+	
+	<linearGradient id="grayLinearGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+		<stop offset="0%" style="stop-color: gray; stop-opacity:1"/>
+		<stop offset="50%" style="stop-color: white; stop-opacity:1"/>
+		<stop offset="100%" style="stop-color: gray; stop-opacity:1"/>
+	</linearGradient>
+	
+	<linearGradient id="goldLinearGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+		<stop offset="0%" style="stop-color: rgb(128,128,64); stop-opacity:1"/>
+		<stop offset="50%" style="stop-color: white; stop-opacity:1"/>
+		<stop offset="100%" style="stop-color: rgb(128,128,64); stop-opacity:1"/>
+	</linearGradient>
+	
+	<linearGradient id="redYellowGreen" x1="0%" y1="0%" x2="100%" y2="0%">
+		<stop offset="0%" style="stop-color: green; stop-opacity:1"/>
+		<stop offset="25%" style="stop-color: green; stop-opacity:1"/>
+		<stop offset="50%" style="stop-color: yellow; stop-opacity:1"/>
+		<stop offset="100%" style="stop-color: red; stop-opacity:1"/>
+	</linearGradient>
+	
+	<radialGradient id="cloudRadialGrad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+		<stop offset="0%" style="stop-color:white;stop-opacity:0.75"/>
+		<stop offset="50%" style="stop-color: pink; stop-opacity:0.38"/>
+		<stop offset="100%" style="stop-color:rgb(200,200,255);stop-opacity:0.0"/>
+	</radialGradient>
+	
+	<pattern id="cloud" x="0" y="0" width="100%" height="100%"
+			 patternUnits="userSpaceOnUse" patternContentUnits="objectBoundingBox">
+		<svg x="0" y="0" width="0.1" height="1" style="overflow: hidden;" >
+			<ellipse cx="100%" cy="50%" rx="50%" ry="50%" style="fill: url(#cloudRadialGrad)"/>
+		</svg>
+		<rect x="0.1" y="0" width="0.8" height="1" style="fill: url(#cloudLinearGrad)"/>
+		<svg x="0.9" y="0" width="0.1" height="1" style="overflow: hidden;" >
+			<ellipse cx="0%" cy="50%" rx="50%" ry="50%" style="fill: url(#cloudRadialGrad)"/>
+		</svg>		
+	</pattern>
+	
+	<!-- Info window shapes -->
+	<path id="infoWinTitleBar" d="M0 26 S0 0 26 0 H330 V26 Z" class="info_title"/>
+	<path id="infoWinTitleBarCover" d="M0 26 S0 0 26 0 H330 V26 Z" style="fill-opacity: 0.0;"/>
+	<circle id="infoWinCloseButton" cx="13" cy="13" r="6" class="dark_close_button" 
+		onmouseover='this.setAttribute("class", "lit_close_button");'
+		onmouseout ='this.setAttribute("class", "dark_close_button");'
+				/>
+	<svg id="activeLeftBottomTab">
+		<path d="M0 0 S0 26 26 26 H165 V0 Z" class="info"/>
+		<text x="82.5" y="18" class="infoWinTitle">Metrics</text>
+	</svg>
+	
+	<svg id="inactiveLeftBottomTab">
+		<path d="M0 0 S0 26 26 26 H165 V0 Z" class="info" style="fill:rgb(20,20,20)"/>
+		<text x="82.5" y="18" class="infoWinTitle">Metrics</text>
+	</svg>
+	
+	<svg id="activeRightBottomTab">
+		<path d="M0 0 V26 H145 S165 26 165 0 Z" class="info"/>
+		<text x="82.5" y="18" class="infoWinTitle">Settings</text>
+	</svg>
+	
+	<svg id="inactiveRightBottomTab">
+		<path d="M0 0 V26 H145 S165 26 165 0 Z" class="info" style="fill:rgb(20,20,20)"/>
+		<text x="82.5" y="18" class="infoWinTitle">Settings</text>
+	</svg>
+	
+</defs>
+</svg>

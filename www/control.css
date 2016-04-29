@@ -1,0 +1,496 @@
+div#tabs {
+	position: absolute;
+	left: 10px;
+	right: 10px;
+	top: 10px;
+	bottom: 10px;
+}
+
+.outerTab {
+	position: absolute;
+	top: 40px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+}
+
+div#workArea {
+	position: absolute;
+	top: 50px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	overflow: auto;
+
+	border-width: 0px;
+	padding-left: 50px;
+}
+
+table#segmentPropertiesTable {
+	width: 800px;
+	border-spacing: 0;
+}
+
+table#segmentPropertiesTable th.top {
+	border-style: solid;
+	border-color: black;
+	border-width: 1px 1px 1px 0px;
+	background-color: white;
+}
+
+table#segmentPropertiesTable th.top:first-child {
+	border-left-width: 1px;
+}
+
+table#segmentPropertiesTable tr.row > td {
+	border-bottom: thin solid #aed0ea;
+	padding: 5px;
+	vertical-align: top;
+}
+
+table#segmentPropertiesTable tr.row td:last-child {
+	padding-right: 5px;
+	font-size: 9pt;
+}
+
+table#segmentPropertiesTable tr.row td:first-child {
+	text-align: right;
+	width: 150px;
+	padding-right: 5px;
+	font-size: 10pt;
+	font-weight: normal;
+}
+
+table#segmentPropertiesTable td.required {
+	color: red;
+}
+
+table#segmentPropertiesTable td.optional {
+	color: black;
+}
+
+table#segmentPropertiesTable th {
+	vertical-align: bottom;
+	font-size: 9pt;
+	font-weight: normal;
+}
+
+.segmentProperties {
+	font-family: Verdana, Arial, Helvetica;
+	font-size: 10pt;
+}
+
+p.segmentProperties {
+	width: 780px;
+	border: 1px solid #aed0ea;
+	border-radius: 0px 10px 10px 0px;
+	padding: 8px;
+	background-color: white;
+	background-image: url('css/cupertino/images/ui-bg_glass_80_d7ebf9_1x400.png');
+}
+
+.segmentProperties td {
+	vertical-align: top;
+	font-weight: normal;
+}
+
+input[required="required"].segmentPropertiesField,
+select[required="required"].segmentPropertiesField {
+	border: 2px inset red;
+}
+
+div#toolbar {
+	position: absolute;
+	left: 10px;
+	top: 2px;
+	right: 10px;
+	height: 26px;
+	border: 1px solid #AED0EA;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+	color: #3281b0;
+	background-image: url('css/cupertino/images/ui-bg_glass_80_d7ebf9_1x400.png');
+	padding-left: 5px;
+}
+
+table#toolbarTable td {
+	font-family: Arial, Helvetica;
+	font-size: 10pt;
+	color: #3281b0;
+}
+
+select#debugLevel {
+	font-family: Verdana, Arial, Helvetica;
+	font-size: 10pt;
+	height: 1.5em;
+}
+
+button.toolbarButton .ui-button-text {
+	padding-top: 0px;
+	padding-bottom: 0px;
+}
+
+div#msgArea {
+	position: absolute;
+	left: 10px;
+	right: 10px;
+	top: 30px;
+	height: 400px;
+	overflow: auto;
+	background-color: #E3F1FA;
+	font-family: "Lucida Console", Monaco, monospace;
+	color: #3281b0;
+	font-size: 10pt;
+	padding-left: 5px;
+	border: 1px solid #AED0EA;
+	border-top-width: 0px;
+}
+
+
+div#configFileTitle {
+	position: absolute;
+	left: 10px;
+	top: 440px;
+	right: 10px;
+	height: 26px;
+	border: 1px solid #AED0EA;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+	color: #3281b0;
+	background-image: url('css/cupertino/images/ui-bg_glass_80_d7ebf9_1x400.png');
+	padding-left: 5px;
+}
+
+
+div#configFileArea {
+	position: absolute;
+	left: 10px;
+	right: 10px;
+	top: 468px;
+	bottom: 5px;
+	overflow: auto;
+	background-color: #E3F1FA;
+	font-family: "Lucida Console", Monaco, monospace;
+	color: #3281b0;
+	font-size: 10pt;
+	padding-left: 5px;
+	border: 1px solid #AED0EA;
+	border-top-width: 0px;
+}
+
+a.jlink {
+	cursor: pointer;
+	color: black;
+	text-decoration: underline;
+}
+
+span.logTime {
+	font-family: "Lucida Console", Monaco, monospace;
+	color: gray;
+	font-size: 9pt;
+}
+
+/*
+table.segListTable > thead > tr > td button {
+}
+*/
+
+table.tabActions {
+	border: 0px;
+	margin: 0px;
+	padding: 0px;
+}
+
+table.tabActions td.newSegmentCell * {
+	z-index: 20;
+}
+
+table.tabActions td.channelTemplateCell * {
+	z-index: 10;
+}
+
+td.sliderCell {
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+span.updateInterval {
+	font-family: "Lucida Console", Monaco, monospace;
+	font-size: 9pt;
+	font-weight: bold;
+	color: black;
+}
+
+span.updateIntervalLabel {
+	font-family: Calibri, Arial, Helvetica,
+	font-size: 9pt;
+	color: #3281b0;
+}
+
+/* Device panel */
+div.segListBorderOuter {
+	position: absolute;
+	top: 5px;
+	left: 5px;
+	right: 5px;
+	bottom: 5px;
+	background-color: white;
+	background: linear-gradient(to bottom, white, #aed0ea);
+	border-radius: 15px;
+	border: solid #aed0ea 1px;
+}
+
+div.segListBorderInner {
+	position: absolute;
+	overflow: auto;
+
+	top: 0px;
+	left: 15px;
+	right: 15px;
+	bottom: 5px;
+}
+
+table.segListTable {
+	position: absolute;
+	width: 100%;
+	border-collapse: separate;
+	border-spacing: 0px 10px;
+}
+
+table.segListTable > tbody > tr > th {
+	text-align: left;
+}
+
+table.segListTable > tbody > tr > td {
+	text-align: left;
+	vertical-align: top;
+	border: 1px solid #ccf;
+	padding-top: 3px;
+	padding-bottom: 3px;
+}
+
+table.segListTable > tbody > tr > td:first-child {
+	border-right: none;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+	padding-left: 5px;
+}
+
+table.segListTable > tbody > tr > td:not(:first-child) {
+	border-left: none;
+	border-right: none;
+}
+
+table.segListTable > tbody > tr > td:last-child {
+	border-left: none;
+	border-right: 1px solid #ccf;
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+}
+
+table.segListTable th.perf {
+	width: 400px;
+}
+
+table.segListTable > thead > tr > th {
+	font-size: 16pt;
+	text-align: left;
+}
+
+td.segCounters {
+	width: 400px;
+}
+
+table.segCounters {
+	border-collapse: collapse;
+	border-spacing: 0px;
+	width: 100%;
+}
+
+table.segCounters td, table.segCounters th {
+	width: 50%;
+}
+
+table.segCounters > tbody > tr > td {
+	border: none;
+	border-radius: 0;
+}
+
+table.segCounters > tbody > tr > td:last-child {
+	border-right: none;
+	padding-left: 5px;
+	border-radius: 0;
+}
+
+table.segCounters div.gauge {
+	background: linear-gradient(to right, green, green 60%, yellow 75%, red 95%);
+	width: 100%;
+	height: 10px;
+	border: 1px solid black;
+	padding: 0px;
+	margin: 0px;
+	text-align: right;
+	vertical-align: top;
+	overflow: hidden;
+}
+
+table.segCounters div.gauge > img.dangerBarCover {
+	width: 100%;
+	height: 14px;
+	padding: 0;
+	border: 0;
+	margin: 0;
+}
+
+table.segCounters img.counterToggleImage {
+	padding-left: 5px;
+}
+
+table.segCounters td.counterLabel {
+	text-align: right;
+	padding-right: 5px;
+}
+
+select.visible {
+	display: inline;
+}
+
+select.invisible {
+	display: none;
+}
+
+table.newSegment tr th:first-child {
+	width: 100px;
+	height: 20px;
+	text-align: right;
+}
+
+table.newSegment tr td:last-child {
+	width: 200px;
+	height: 20px;
+	text-align: left;
+	padding-left: 5px;
+}
+
+table.newSegment tr:first-child th {
+	background: rgba(0, 0, 100, 0.2);
+	text-align: center;
+	border-radius: 3px;
+}
+
+table.newSegment tr:last-child td {
+	text-align: center;
+}
+
+/* New module selection menu items */
+ul#categories li a {
+	white-space: nowrap;
+}
+
+div#welcome {
+	background-image: url('css/cupertino/images/ui-bg_glass_80_d7ebf9_1x400.png');
+	text-align: left;
+	border: 1px solid #aed0ea;
+	border-radius: 5px;
+	padding: 10px;
+	width: 400px;
+	margin-top: 10px;
+	color: #3281b0;
+}
+
+table#mainControls th {
+	text-align: left;
+	font-weight: normal;
+	font-size: 9pt;
+	font-family: Arial, Helvetica;
+	color: #3281b0;
+	padding-left: 5px;
+}
+
+table#mainControls td {
+	background-image: url('css/cupertino/images/ui-bg_glass_80_d7ebf9_1x400.png');
+	border: 1px solid #aed0ea;
+	border-radius: 5px;
+	padding-left: 10px;
+	padding-top: 3px;
+	padding-right: 10px;
+	padding-bottom: 3px;
+	margin-right: 5px;
+}
+
+.segFormErr {
+	font-weight: bold;
+}
+
+table.spreadsheetSetting {
+	border-spacing: 0px;
+	border-collapse: separate;
+}
+
+table.spreadsheetSetting td,
+table.spreadsheetSetting th {
+	width: 50px;
+	border-style: solid;
+	border-width: 0px 1px 1px 0px;
+	border-color: #aed0ea;
+}
+
+table.spreadsheetSetting th {
+	background-image: url('css/cupertino/images/ui-bg_glass_80_d7ebf9_1x400.png');
+	font-size: 9pt;
+}
+
+table.spreadsheetSetting td {
+	padding: 0;
+	margin: 0;
+	height: 20px;
+}
+
+table.spreadsheetSetting tbody:first-child tr:first-child td,
+table.spreadsheetSetting tbody:first-child tr:first-child th {
+	border-top-width: 1px;
+}
+
+table.spreadsheetSetting tr td:first-child,
+table.spreadsheetSetting tr th:first-child {
+	border-left-width: 1px;
+}
+
+table.spreadsheetSetting td input {
+	border: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+	display: block;
+}
+
+table.spreadsheetSetting td select {
+	width: 100%;
+	height: 100%;
+	background-color: white;
+	border: 0;
+}
+
+dt.spreadsheetSetting {
+	font-weight: bold;
+}
+
+ul.mainControls {
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+}
+
+ul.mainControls li {
+	display: inline-block;
+	padding-right: 10px;
+}
+
+ul.mainControls li.menu {
+	width: 400px;
+}
+
+ul.mainControls li.menu * {
+	display: inline;
+	width: 200px;
+}

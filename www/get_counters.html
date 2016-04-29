@@ -1,0 +1,257 @@
+<html>
+<head>
+<title>Channel Emulator Status</title>
+<script type="text/javascript" src="xmlrpc_lib.js"></script>
+
+<script type="text/javascript">
+
+var client = new xmlrpc_client('/RPC2', top.location.hostname, top.location.port);
+var do_debug = false;
+var timer_id = 0;
+
+function debug(msg) {
+	if ( ! do_debug ) return;
+	var debugArea = window.document.getElementById('debugArea');
+
+	debugArea.value = msg + "\n" + debugArea.value;
+}
+
+function xmlrpc_error(response) {
+	debug("XML-RPC FAULT:" + response.faultCode() + ", " + response.faultString());
+}
+
+function getChannelArray() {
+	debug("Running getChannelArray().");
+
+	var rpc = new xmlrpcmsg("channel.listChannels", null);
+	var response = client.send(rpc);
+	
+	delete rpc;
+	
+	if ( response.faultCode() ) {
+		xmlrpc_error(response);
+		return;
+	}
+	
+	var rval = response.value();
+	
+	var channels = new Array();
+	
+	for ( var i = 0; i < rval.arraySize(); ++i ) {
+		channels[i] = rval.arrayMem(i).scalarVal();
+		debug("Found channel " +  channels[i]);
+	}
+	
+	return channels;
+}
+
+function getSegmentArray(channelName) {
+	debug("Running getSegmentArray('" + channelName + "').");
+
+	var sval = new xmlrpcval(channelName, 'string');
+	var params = [sval];	
+	var rpc = new xmlrpcmsg("channel.listSegments", params);
+	var response = client.send(rpc);
+	
+	delete sval;
+	delete rpc;
+	
+	if ( response.faultCode() ) {
+		xmlrpc_error(response);
+		return;
+	}
+	
+	var rval = response.value();
+	
+	var segments = new Array();
+	for ( var i = 0; i < rval.arraySize(); ++i ) {
+		segments[i] = rval.arrayMem(i).scalarVal();
+		debug("Found segment " +  segments[i]);		
+	}
+	
+	return segments;
+}
+
+function getSegmentType(channelName, segmentName) {
+	debug("Running getSegmentType('" + channelName + "', '" + segmentName + "').");
+
+	var cval = new xmlrpcval(channelName, 'string');
+	var sval = new xmlrpcval(segmentName, 'string');
+	var params = [cval, sval];	
+	var rpc = new xmlrpcmsg("channel.getSegmentType", params);
+	var response = client.send(rpc);
+	
+	delete cval;
+	delete sval;
+	delete rpc;
+	
+	if ( response.faultCode() ) {
+		xmlrpc_error(response);
+		return;
+	}
+	
+	return response.value().scalarVal();
+}
+
+function callSegmentMethod(segmentType, channelName, segmentName, methodName, params) {
+	debug("Running callSegmentMethod(" + segmentType + "," + channelName + "," + segmentName + "," + methodName + ", ...).");
+	
+	var cval = new xmlrpcval(channelName, 'string');
+	var sval = new xmlrpcval(segmentName, 'string');
+	params.unshift(cval, sval);
+	var rpc = new xmlrpcmsg( segmentType + "." + methodName, params);
+	var response = client.send(rpc);
+	
+	delete cval;
+	delete sval;
+	delete rpc;
+	
+	if ( response.faultCode() ) {
+		xmlrpc_error(response);
+		return null;
+	}
+	
+	debug("Returning " + response.value().kindOf() + ".")
+	return response.value();
+}
+
+function getReceivedUnitCount(segmentType, channelName, segmentName) {
+	debug("Running getReceivedUnitCount().");
+	
+	return callSegmentMethod(segmentType, channelName, segmentName, "getReceivedUnitCount", []).scalarVal();
+}
+
+function getReceivedOctetCount(segmentType, channelName, segmentName) {
+	debug("Running getReceivedOctetCount().");
+	
+	return callSegmentMethod(segmentType, channelName, segmentName, "getReceivedOctetCount", []).scalarVal();	
+}
+
+function getQueuedUnitCount(segmentType, channelName, segmentName) {
+	debug("Running getQueuedUnitCount().");
+	
+	return callSegmentMethod(segmentType, channelName, segmentName, "getQueuedUnitCount", []).scalarVal();
+}
+
+function getQueuedOctetCount(segmentType, channelName, segmentName) {
+	debug("Running getQueuedOctetCount().");
+	
+	return callSegmentMethod(segmentType, channelName, segmentName, "getQueuedOctetCount", []).scalarVal();	
+}
+
+function getOutputLinkArray(segmentType, channelName, segmentName) {
+	debug("Running getOutputLinkArray().");
+	
+	return callSegmentMethod(segmentType, channelName, segmentName, "getOutputLinks", []);	
+}
+
+function setCellContents(row, prefix, suffix, content) {
+	var cell = window.document.getElementById(prefix + suffix);
+	if ( cell === null) {
+		cell = row.insertCell(0);
+		cell.id = prefix + suffix;
+	}
+	cell.innerHTML = content;
+}
+
+function showInfo(segmentType, channelName, segmentName) {
+	var info = callSegmentMethod(segmentType, channelName, segmentName, "getInfo", []);
+	
+	var infoDiv = window.document.getElementById("infoDiv");
+	if ( infoDiv === null ) {
+		infoDiv = window.document.createElement("div");
+		infoDiv.id = "infoDiv";
+		window.document.body.appendChild(infoDiv);
+	}
+	infoDiv.innerHTML = "<pre>" + info.serialize() + "</pre>";
+}
+
+function ceStatus() {
+	debug("Running ceStatus().");
+	var infoTable = window.document.getElementById('info');
+
+	var channels = getChannelArray();
+	
+	for ( var c = 0; c < channels.length; ++c ) {
+		var segments = getSegmentArray(channels[c]);
+		for ( var s = 0; s < segments.length; ++s ) {
+			
+			var prefix = channels[c] + "_" + segments[s] + "_";
+			
+			var segmentType = getSegmentType(channels[c], segments[s]);
+			var unitsReceived = getReceivedUnitCount(segmentType, channels[c], segments[s]);
+			var octetsReceived = getReceivedOctetCount(segmentType, channels[c], segments[s]);
+			var unitsQueued = getQueuedUnitCount(segmentType, channels[c], segments[s]);
+			var octetsQueued = getQueuedOctetCount(segmentType, channels[c], segments[s]);
+			var outputs = getOutputLinkArray(segmentType, channels[c], segments[s]);
+			
+			var row = window.document.getElementById(prefix + "row");
+			if ( row === null ) {
+				row = infoTable.insertRow(1);
+				row.id = prefix + "row";
+			}
+			
+			var outputsText = "";
+			if ( ! (outputs === null || outputs === undefined || outputs.structSize() == 0) ) {
+				debug("Displaying " + outputs.structSize() + " outputs.");
+
+				var outputObj;
+				while ((outputObj = outputs.structEach())) {
+					outputsText += outputObj[0] + " (" + outputObj[1].scalarVal() + ")<br/>\n";
+				}
+			}
+			else outputsText = "<i>None</i>";		
+			setCellContents(row, prefix, "outputs", outputsText);
+			
+			setCellContents(row, prefix, "octetsReceived", octetsReceived);
+			setCellContents(row, prefix, "unitsReceived", unitsReceived);
+			setCellContents(row, prefix, "octetsQueued", octetsQueued);
+			setCellContents(row, prefix, "unitsQueued", unitsQueued);
+			setCellContents(row, prefix, "modType", segmentType);
+			setCellContents(row, prefix, "segName",
+				"<a href='javascript:showInfo(\"" + 
+					segmentType + "\", \"" +
+					channels[c] + "\", \"" +
+					segments[s] + "\")'>" + segments[s] + "</a>");
+			setCellContents(row, prefix, "chName", channels[c]);
+			
+		}
+		delete segments;
+	}
+	
+	delete channels;
+}
+
+function doRefresh(interval) {
+	if ( timer_id ) {
+		window.clearInterval(timer_id);
+		timer_id = 0;
+	}
+	
+	if ( interval == 0 ) ceStatus();
+	else timer_id = window.setInterval(ceStatus, interval);
+}
+
+</script>
+<body onLoad="ceStatus()">
+<table id="info" width="800" border="1">
+<tr>
+<th>Channel</th>
+<th>Segment</th>
+<th>Module Type</th>
+<th>Queued Unit Count</th>
+<th>Queued Octet Count</th>
+<th>Processed Unit Count</th>
+<th>Processed Octet Count</th>
+<th>Segment Output Target(s)</th>
+</tr>
+</table>
+<p>
+<button type="button" onclick="doRefresh(0)">Manual<br/>Refresh</button>
+<button type="button" onclick="doRefresh(500)">0.5-Second<br/>Auto<br/>Refresh</button>
+<button type="button" onclick="doRefresh(1000)">1-Second<br/>Auto<br/>Refresh</button>
+<button type="button" onclick="doRefresh(5000)">5-Second<br/>Auto<br/>Refresh</button>
+</p>
+<!-- <textarea id='debugArea' cols='80' rows='10'></textarea> -->
+</body>
+</html>

@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Channel Emulator Control Panel</title>
+
+<link rel="stylesheet" type="text/css" href="css/cupertino/jquery-ui-1.9.0.custom.min.css"/>
+<link rel="stylesheet" type="text/css" href="control.css"/>
+
+<!-- JQuery and JQuery-UI stuff: -->
+<script src="js/jquery-1.8.2.min.js"></script>
+<script src="js/jquery-ui-1.9.0.custom.min.js"></script>
+<script src="js/jquery.cookie.js"></script>
+<script src="js/jquery.number.min.js"></script>
+
+<script src="xmlrpc_lib.js"></script>
+
+<!-- Project-specific files: -->
+<script src="Messenger.js"></script>
+<script src="Preferences.js"></script>
+<script src="Setting.js"></script>
+<script src="DLL.js"></script>
+<script src="DLLManager.js"></script>
+<script src="DLLInstance.js"></script>
+<script src="Device.js"></script>
+<script src="DeviceManager.js"></script>
+<script src="Segment.js"></script>
+<script src="Macro.js"></script>
+<script src="Channel.js"></script>
+<script src="ChannelManager.js"></script>
+<style>
+.ui-widget {
+	font-size: 0.8em;
+}
+
+
+#tabs { margin-top: 1em; }
+#tabs li .ui-icon-close { float: left; margin: 0.4em 0.2em 0 0; cursor: pointer; }
+
+#addChannelDialog label, #addChannelDialog input { display:block; }
+#addChannelDialog label { margin-top: 0.5em; }
+#addChannelDialog input, #addChannelDialog textarea { width: 95%; }
+#tabs { margin-top: 1em; }
+#tabs li .ui-icon-close { float: left; margin: 0.4em 0.2em 0 0; cursor: pointer; }
+button#add_channel, button#clearLog, button#refreshConfig { cursor: pointer; }
+</style>
+
+<script>
+// Globals:
+var client, msg, prefs, dllMgr, devMgr, channelMgr,
+	xmlParser, minTabs = 3, tabCounter = minTabs + 1,
+	addTab, propertiesDialog, addChannelDialog;
+
+function guidGenerator() {
+    var S4 = function() {
+       return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+    };
+    // return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+
+    return ("chan_" + S4() + S4());
+}
+
+function boolStr2Int(val) {
+	if ( val != undefined ) {
+		if (val.toString().match(/true|yes|on|1/i) != null) { return true; }
+		if (val.toString().match(/false|no|off|0/i) != null) { return false; }
+	}
+	return undefined;
+}
+
+// Send an XML-RPC call to the CE.
+// The returned value is an xmlrpcval object, so its .scalarVal() or
+// other method must be used to extract information from it.
+function callXmlrpcMethodBase(methodName, params, callBackMethod) {
+	if ( ! params ) params = [];
+	var paramStr = "";
+	for ( i = 0; i < params.length; i++ ) {
+		if ( i > 0 ) { paramStr += ", "; }
+		paramStr += params[i].scalarVal();
+	}
+	msg.debug("Attempting XML-RPC call " + methodName + "(" + paramStr + ")");
+
+	var rpc = new xmlrpcmsg(methodName, params);
+
+	if ( ! callBackMethod ) {
+		var response = client.send(rpc);
+
+		delete rpc;
+
+		if ( response.faultCode() ) {
+			msg.xmlrpcError(response, "Attempted method: " + methodName + "(" + paramStr + ")");
+		}
+		else { return response.value(); }
+	}
+	else {
+        client.send(rpc, 10, callBackMethod);
+        delete rpc;
+	}
+
+	return null;
+}
+
+function xmlrpcVal2JS(xv) {
+	switch (xv.kindOf()) {
+		case "scalar":
+			var sv = xv.scalarVal();
+			msg.debug("Found XML-RPC scalar value '" + sv + "'.");
+			return sv;
+		case "array": return xmlrpcArray2JS(xv);
+		case "struct": return xmlrpcStruct2JS(xv);
+	}
+}
+
+function xmlrpcArray2JS(xa) {
+	msg.debug("Running xmlrpcArray2JS() on array with " + xa.arraySize() + " elements.");
+
+	var newArr = [ ];
+
+	for ( var i = 0; i < xa.arraySize(); ++i ) {
+		newArr[i] = xmlrpcVal2JS(xa.arrayMem(i));
+	}
+
+	return newArr;
+}
+
+function xmlrpcStruct2JS(xs) {
+	msg.debug("Running xmlrpcStruct2JS() on structure with " + xs.structSize() + " elements.");
+	var newObj = { };
+
+	for ( var curMem = xs.structEach(); curMem; curMem = xs.structEach() ) {
+		msg.debug("xmlrpcStruct2JS(): Found key '" + curMem.key + "'.");
+		newObj[curMem.key] = xmlrpcVal2JS(curMem.value);
+	}
+
+	return newObj;
+}
+
+$(function() {
+
+var tabTemplate = "<li><a class='tablink' href='#{href}'>#{label}</a></li>";
+
+var tabs = $( "#tabs" ).tabs();
+tabs.find( ".ui-tabs-nav" ).sortable({
+	axis: "x",
+	stop: function() {
+		tabs.tabs( "refresh" );
+	}
+});
+
+// modal dialog init: custom buttons and a "close" callback reseting the form inside
+addChannelDialog = $("#newChannelDialog").dialog({
+	autoOpen: false,
+	draggable: true,
+	modal: true,
+	buttons: {
+		Add: function() {
+			channelMgr.addChannel($("#channel_name").val());
+			$( this ).dialog("close");
+		},
+		Cancel: function() {
+			$( this ).dialog("close");
+		}
+	},
+	show: "drop",
+	close: function() {
+		// addChannelForm[0].reset();
+		$("#channel_name").val(guidGenerator());
+	}
+});
+
+loadCfgDialog = $("#loadCfgDialog").dialog({
+	autoOpen: false,
+	draggable: true,
+	modal: true,
+	buttons: {
+		Load: function() {
+			callXmlrpcMethodBase("server.loadConfigFile", [new xmlrpcval($("#cfg_load_name").val(), 'string')]);
+			devMgr.refresh();
+			channelMgr.refresh();
+			$( this ).dialog("close");
+		},
+		Cancel: function() {
+			$( this ).dialog("close");
+		}
+	},
+	show: "drop",
+	open: function() {
+		$("#cfg_load_name").empty();
+		var cfgFileList = callXmlrpcMethodBase("server.listConfigFiles");
+
+		for ( var x = 0; x < cfgFileList.arraySize(); x++ ) {
+			var cfgFilename = cfgFileList.arrayMem(x).scalarVal();
+			$("<option>" + cfgFilename + "</option>").appendTo("select#cfg_load_name");
+		}
+	}
+});
+
+saveCfgDialog = $("#saveCfgDialog").dialog({
+	autoOpen: false,
+	draggable: true,
+	modal: true,
+	buttons: {
+		Save: function() {
+			callXmlrpcMethodBase("server.saveConfigFile", [new xmlrpcval($("#cfg_save_name").val(), 'string')]);
+			$( this ).dialog("close");
+		},
+		Cancel: function() {
+			$( this ).dialog("close");
+		}
+	},
+	show: "drop",
+	close: function() {
+		$("#cfg_save_name").val("");
+	}
+});
+
+uploadCfgDialog = $("#uploadCfgDialog").dialog({
+	autoOpen: false,
+	draggable: true,
+	modal: true,
+	buttons: {
+		Upload: function() {
+			$("#uploadCfgDialog #uploadCfg").submit();
+			/*
+			if ($("#uploadCfg #use_now").prop("checked")) {
+				devMgr.refresh();
+				channelMgr.refresh();
+			}
+			*/
+			$( this ).dialog("close");
+		},
+		Cancel: function() {
+			$( this ).dialog("close");
+		}
+	},
+	show: "drop",
+	close: function() {
+		$("#cfg_upload_name").val("");
+	}
+});
+
+downloadCfgDialog = $("#downloadCfgDialog").dialog({
+	autoOpen: false,
+	draggable: true,
+	minWidth: 816,
+	modal: true,
+	buttons: {
+		Close: function() {
+			$( this ).dialog("close");
+		}
+	},
+	show: "drop"
+});
+
+uploadDataDialog = $("#uploadDataDialog").dialog({
+	autoOpen: false,
+	draggable: true,
+	modal: true,
+	buttons: {
+		Upload: function() {
+			$("#uploadDataDialog #uploadData").submit();
+			// callXmlrpcMethodBase("server.saveConfigFile", [new xmlrpcval($("#cfg_upload_name").val(), 'string')]);
+			$( this ).dialog("close");
+		},
+		Cancel: function() {
+			$( this ).dialog("close");
+		}
+	},
+	show: "drop",
+	close: function() {
+		$("#data_upload_name").val("");
+	}
+});
+
+downloadDataDialog = $("#downloadDataDialog").dialog({
+	autoOpen: false,
+	draggable: true,
+	minWidth: 816,
+	modal: true,
+	buttons: {
+		Close: function() {
+			$( this ).dialog("close");
+		}
+	},
+	show: "drop"
+});
+
+$("#channel_name").val(guidGenerator());
+
+var addChannelForm = addChannelDialog.find("form#addChannel").submit(function( event ) {
+	channelMgr.addChannel($("#channel_name").val());
+	addChannelForm.dialog( "close" );
+	event.preventDefault();
+});
+
+// Add a new selector/panel to the tabs widget.
+// tabTitle [REQ]: The label to use at the top of the control.
+// tabContent [OPT]: What to place in the tab panel.
+// Return a reference to the new tab panel (div object).
+addTab = function(tabTitle, tabContent) {
+	var label = tabTitle || "Tab " + tabCounter,
+		id = "tabs-" + tabCounter,
+		li = $( tabTemplate.replace( /#\{href\}/g, "#" + id ).replace( /#\{label\}/g, label ) ),
+		tabContentHtml = tabContent || "Tab " + tabCounter + " content.";
+
+	tabs.find( ".ui-tabs-nav" ).append( li );
+	tabs.append( "<div id='" + id + "' class='outerTab'><p>" + tabContentHtml + "</p></div>" );
+	tabs.tabs("refresh");
+	$("#tabs #" + id).prop('tabNum', tabCounter);
+	tabCounter++;
+
+	return $('#tabs #' + id);
+}
+
+$("#tabs").on("tabsbeforeactivate", function( event, ui ) {
+	// Refresh the devices list when activated
+	if ( ui.newPanel.attr("id") == "tabs-3") { devMgr.refresh(); }
+} );
+
+// addTab button: just opens the dialog
+$("button#addChannel")
+	.button()
+	.click(function() {
+		addChannelDialog.dialog("open");
+	});
+
+$("button#uploadCfg")
+	.button()
+	.click(function() {
+		uploadCfgDialog.dialog("open");
+	});
+
+$("button#downloadCfg")
+	.button()
+	.click(function() {
+		downloadCfgDialog.dialog("open");
+	});
+
+$("button#loadCfg")
+	.button()
+	.click(function() {
+		loadCfgDialog.dialog("open");
+	});
+
+$("button#saveCfg")
+	.button()
+	.click(function() {
+		saveCfgDialog.dialog("open");
+	});
+
+$("button#uploadData")
+	.button()
+	.click(function() {
+		uploadDataDialog.dialog("open");
+	});
+
+$("button#downloadData")
+	.button()
+	.click(function() {
+		downloadDataDialog.dialog("open");
+	});
+
+$("#clearLog")
+	.button()
+	.click(function() {
+		$("div#msgArea").html("");
+	});
+
+$("#refreshConfig")
+	.button()
+	.click( function() {
+		var cfgResp = callXmlrpcMethodBase("server.getConfigFile");
+		$("pre#configFile").text(cfgResp.scalarVal());
+	});
+
+propertiesDialog = $("#segmentPropertiesLayer").dialog({
+	autoOpen: false,
+	draggable: true,
+	modal: true,
+	minWidth: 816,
+	resizable: true,
+	buttons: {
+		Execute: function() {
+			if ( dllMgr.dlls[$("form#segmentProperties").data("dllName")].validate() ) {
+				dllMgr.dlls[$("form#segmentProperties").data("dllName")].applyChangesToCE();
+				$(this).dialog("close");
+			}
+		},
+		Cancel: function() {
+			$(this).dialog("close");
+		}
+	},
+	show: "drop",
+	close: function() {
+		$("form#segmentProperties").get(0).reset();
+	}
+});
+
+// Build the Devices tab before modules are loaded
+var devDiv = $('.tabTemplate').clone(false).appendTo($('#tabs #tabs-' + minTabs));
+devDiv.attr('id', 'DeviceManagerTab');
+devDiv.removeClass('tabTemplate');
+devDiv.find('table.segListTable > tbody:last').append('<tr><th>Identifier</th><th>Module Type</th><th>Reader</th><th>Writer</th><th>Actions</th></tr>');
+devDiv.css('visibility', 'visible');
+
+xmlParser = new DOMParser();
+msg = new Messenger();
+client = new xmlrpc_client('/RPC2', top.location.hostname, top.location.port);
+dllMgr = new DLLManager();
+devMgr = new DeviceManager();
+channelMgr = new ChannelManager();
+
+});
+</script>
+</head>
+<body>
+
+<div id="newChannelDialog" title="Create New Channel">
+    <form id="addChannel">
+        <fieldset class="ui-helper-reset">
+            <label for="channel_name">Name</label>
+            <input type="text" name="channel_name" id="channel_name" value="" class="ui-widget-content ui-corner-all" />
+        </fieldset>
+    </form>
+</div>
+
+<div id="loadCfgDialog" title="Load Config File on CE">
+    <form id="loadCfg">
+        <fieldset class="ui-helper-reset">
+            <label for="cfg_load_name">Remote Filename</label>
+            <select name="cfg_load_name" id="cfg_load_name" value="" class="ui-widget-content ui-corner-all" />
+            </select>
+        </fieldset>
+    </form>
+</div>
+
+<div id="saveCfgDialog" title="Save Config File on CE">
+    <form id="saveCfg">
+        <fieldset class="ui-helper-reset">
+            <label for="cfg_save_name">Remote Filename</label>
+            <input type="text" name="cfg_save_name" id="cfg_save_name" value="" class="ui-widget-content ui-corner-all" />
+        </fieldset>
+    </form>
+</div>
+
+<div id="uploadCfgDialog" title="Upload Config File to CE">
+    <form enctype="multipart/form-data" id="uploadCfg" action="/upload" method="post">
+        <fieldset class="ui-helper-reset">
+			<input type="hidden" name="uploadType" id="uploadType" value="config"/>
+            <label for="cfg_upload_name">Upload File:</label>
+            <input type="file" name="cfg_upload_name" id="cfg_upload_name" value="" class="ui-widget-content ui-corner-all" /><br/>
+            <input type="checkbox" name="use_now" id="cfg_upload_use_now" checked/>
+            <label for="cfg_upload_use_now">Use Config File Immediately</label><br/>
+            <input type="checkbox" name="overwrite" id="cfg_upload_overwrite"/>
+            <label for="cfg_upload_overwrite">Permit Overwrite of Existing File</label>
+        </fieldset>
+    </form>
+</div>
+
+<div id="downloadCfgDialog" title="Download Config File from CE">
+    <iframe src="/cfg" style="height: 400px; width: 780px"></iframe>
+</div>
+
+<div id="uploadDataDialog" title="Upload Data File to CE">
+    <form enctype="multipart/form-data" id="uploadData" action="/upload" method="post">
+        <fieldset class="ui-helper-reset">
+			<input type="hidden" name="uploadType" id="uploadType" value="config"/>
+            <label for="data_upload_name">Upload File:</label>
+            <input type="file" name="data_upload_name" id="data_upload_name" value="" class="ui-widget-content ui-corner-all" /><br/>
+            <input type="checkbox" name="overwrite" id="data_upload_overwrite"/>
+            <label for="data_upload_overwrite">Permit Overwrite of Existing File</label>
+        </fieldset>
+    </form>
+</div>
+
+<div id="downloadDataDialog" title="Download Data File from CE">
+    <iframe src="/fileIO" style="height: 400px; width: 780px"></iframe>
+</div>
+
+
+<div id="tabs">
+    <ul>
+        <li><a class='tablink' href="#tabs-1">Main</a></li>
+        <li><a class='tablink' href="#tabs-2">Details</a></li>
+        <li><a class='tablink' href="#tabs-3">Devices</a></li>
+    </ul>
+    <div id="tabs-1" class="outerTab">
+		<table id="mainControls">
+		<tr>
+			<td><button id="addChannel">New</button></td>
+			<td><button id="loadCfg">Load</button><button id="saveCfg">Save</button><button id="uploadCfg">Upload</button><button id="downloadCfg">Download</button></td>
+			<td><button id="uploadData">Upload</button><button id="downloadData">Download</button></td>
+		</tr>
+		<tr>
+			<th>Channels</th>
+			<th>Configuration Files</th>
+			<th>Data Files</th>
+		</tr>
+		</table>
+
+		<div id="welcome">
+		<h1>NASA Compatibility Test Sets</h1>
+		<h2>Data Link Module</h2>
+		<h2>Channel Emulator Control Panel</h2>
+		<h3>Version 1.8.6.5</h3>
+		</div>
+
+		</div>
+
+    <div id="tabs-2" class="outerTab">
+		<div id='toolbar'>
+		<table id='toolbarTable'>
+		<tr>
+		<td><span style="font-weight: bold; padding-right: 20px;">Client Message Log</span></td>
+		<td>Log Level</td>
+		<td>
+		<form name='Preferences'>
+		<select id="debugLevel" name="debugLevel" onchange="prefs.setDebugLevel(this.selectedIndex)">
+		<option value="0">Mute</option>
+		<option value="1">Errors</option>
+		<option value="2">Warnings</option>
+		<option value="3">Notices</option>
+		<option value="4">Info</option>
+		<option value="5">Debug</option>
+		</select>
+		</form>
+		</td>
+		<td style='padding-left: 15px'><button id='clearLog' class='toolbarButton'>Clear</button></td>
+		</tr>
+		</table>
+		</div>
+		<div id='msgArea'>
+		Welcome to the Channel Emulator Control Panel<br/>
+		</div>
+		<div id="configFileTitle">
+			<div style="padding-top: 3px;" class='ui-widget,ui-widget-header'>
+				<span style="font-weight: bold; padding-right: 20px;">Server Config File</span>
+				<button id='refreshConfig' class='toolbarButton'>Refresh</button>
+			</div>
+		</div>
+		<div id="configFileArea">
+			<pre id="configFile"></pre>
+		</div>
+    </div>
+
+    <div id="tabs-3" class="outerTab">
+
+    </div>
+</div>
+
+<!-- Begin tab template -->
+<div class='tabTemplate' style='visibility: hidden'>
+	<div class='segListBorderOuter'>
+		<div class='tabActions'></div>
+		<div class='segListBorderInner'>
+			<table class='segListTable'>
+				<thead><tr></tr></thead>
+				<tbody class='existingSeg'></tbody>
+				<tfoot><tr></tr></tfoot>
+			</table>
+		</div>
+	</div>
+
+</div>
+<!-- End tab template -->
+
+<!-- Begin segment property dialog -->
+<div id='segmentPropertiesLayer'>
+	<p class='segmentProperties' id='dllDesc'></p>
+
+	<form id='segmentProperties' name='segmentProperties' method='post'>
+		<fieldset class='ui-helper-reset'>
+			<input type='hidden' id='channelName' name='channelName' value=''/>
+			<input type='hidden' id='segmentExists' name='segmentExists' value=''/>
+			<table class='segmentProperties' id='segmentPropertiesTable'>
+			<tbody id='static'>
+				<tr><th class='top'>Setting</th><th class='top'>Value</th><th class='top'>Description</th></tr>
+			</tbody>
+			<tbody id='dynamic'>
+			</tbody>
+			</table>
+		</fieldset>
+	</form>
+</div>
+<!-- End segment property dialog -->
+
+</body>
+</html>

@@ -1,0 +1,99 @@
+-----------------------------------------------------------------------
+Version: 1.8.6.5
+Date: 2014-02-20
+-----------------------------------------------------------------------
+* Made it possible to view some integers in hex format.
+* Used SO_REUSEADDR in devTcp4Server.
+-----------------------------------------------------------------------
+
+-----------------------------------------------------------------------
+Version: 1.8.6.4
+Date: 2014-02-14
+-----------------------------------------------------------------------
+* Created the FdInputHandler base class for modUdp4Receiver, 
+modTcp4Receiver, and modEthReceiver.
+-----------------------------------------------------------------------
+
+-----------------------------------------------------------------------
+Version: 1.8.6.3
+Date: 2014-02-13
+-----------------------------------------------------------------------
+* Added more counters and minor opts to modASM_Remove.
+-----------------------------------------------------------------------
+
+-----------------------------------------------------------------------
+Version: 1.8.6.2
+Date: 2014-02-12
+-----------------------------------------------------------------------
+* Backported NetworkData memory management fixes/opts from 1.9.x.
+-----------------------------------------------------------------------
+
+-----------------------------------------------------------------------
+Version: 1.8.6.1
+Date: 2013-12-17
+-----------------------------------------------------------------------
+* Fixed AOS and TM get_idle_pattern so it wouldn't crash the CE.
+-----------------------------------------------------------------------
+
+-----------------------------------------------------------------------
+Version: 1.8.6.0
+Date: 2013-12-13
+-----------------------------------------------------------------------
+* New 1.8.6.* branch to retain old Channel GUI while applying fixes.
+* Fixes for valid TM/AOS Frame counting.
+* Fixes for TM/AOS garbage collection when dealing with dropBadFrames.
+* Fix for modEthFrame_Add that caused a seg fault when loaded.
+-----------------------------------------------------------------------
+
+-----------------------------------------------------------------------
+Version: 1.8.5.1
+Date: 2013-09-27
+-----------------------------------------------------------------------
+* Fixed connectOutput/connectPrimaryOutput for modTM_VC_Rcv_Packet.
+-----------------------------------------------------------------------
+
+-----------------------------------------------------------------------
+Version: 1.8.5
+Date: 2013-09-25
+-----------------------------------------------------------------------
+* Fixed ability to change a device when one is already in use by the 
+calling segment, or the device is already in use by a different segment.
+* Fixed ability to add outputs to the Demux modules after they've been 
+initialized.
+* Began implementing BitPattern classes that will generate standard bit 
+patterns, usable by modules like devSource (not yet implemented).
+-----------------------------------------------------------------------
+
+-----------------------------------------------------------------------
+Version: 1.8.4
+Date: 2013-09-05
+-----------------------------------------------------------------------
+* modTM_Macros.newForwardChannel now inserts modTM_MC_Gen.
+* modTM_Macros.newReturnChannel now inserts modTM_MC_Rcv.
+* All of the AOS and TM macros accept a new "minimize" parameter, which 
+will prevent the insertion of mux/demux modules if not required
+* All of the AOS and TM macros accept a new "usePseudoRandomize" 
+parameter, which will insert modPseudoRandomize at the appropriate 
+place.
+* All AOS and TM modules have a new "dropBadFrames" setting that 
+defaults to true, with getDropBadFrames and setDropBadFrames methods 
+available. It will cause malformed frames (or in the case of All Frames 
+Reception, frames that fail ECC) to be discarded. A malformed frame is 
+one with the wrong length or a wrong identifier (TVFN, SCID, VCID, 
+etc., depending on the module). This setting is local to each channel 
+segment. It replaces "performErrorControlHere" in the TM modules, which 
+is basically what that setting used to do. There wasn't an equivalent 
+in AOS.
+* The default initial queue size for each segment is now 4MB instead of 
+16MB.
+* Improved the garbage collection and locking for the data "wrapper" 
+base class, NetworkData. It now only creates a lock object when a 
+shallow copy is created, instead of for every object. It turns out 
+these lock objects were not always being deleted, which had been 
+causing a bit of a memory leak. Also, there is new a template function 
+that performs some checks and invokes a reference-counting release() 
+method, which is safer for shallow copies and multi-part data blocks 
+than a simple delete.
+* The manual and properties files were updated with the new settings.
+-----------------------------------------------------------------------
+
